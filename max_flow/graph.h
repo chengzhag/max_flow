@@ -79,19 +79,23 @@ public:
 	//输出邻接矩阵
 	friend ostream & operator<<(ostream &os, const AdjGraph &g)
 	{
-		int i = 0, j = 0;
-		for (i = 0; i < g.numV() - 1; i++)
+		if (g.numV() > 0)
 		{
+			int i = 0, j = 0;
+			for (i = 0; i < g.numV() - 1; i++)
+			{
+				for (j = 0; j < g.numV(); j++)
+				{
+					os << g.adjMatrix[i][j] << "\t";
+				}
+				os << endl;
+			}
 			for (j = 0; j < g.numV(); j++)
 			{
 				os << g.adjMatrix[i][j] << "\t";
 			}
-			os << endl;
 		}
-		for (j = 0; j < g.numV(); j++)
-		{
-			os << g.adjMatrix[i][j] << "\t";
-		}
+
 		return os;
 	}
 };
@@ -123,12 +127,15 @@ public:
 	public:
 		friend ostream & operator<<(ostream &os, const Route &r)
 		{
-			int i = 0;
-			for (i = 0; i < r.size() - 1; i++)
+			if (r.size() > 0)
 			{
-				os << r[i] << "->";
+				int i = 0;
+				for (i = 0; i < r.size() - 1; i++)
+				{
+					os << r[i] << "->";
+				}
+				os << r[i];
 			}
-			os << r[i];
 			return os;
 		}
 	};
@@ -173,6 +180,17 @@ public:
 			}
 
 		}
+		return route;
+	}
+
+	//基于增广路径和Edmonds Karp的最大流算法
+	Graph maxFlowEK(int s, int d)
+	{
+		Graph maxFlow;
+
+		return maxFlow;
 	}
 };
+
+
 
