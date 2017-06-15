@@ -16,14 +16,8 @@ int main()
 	cout << "g1:" << endl << g1 << endl;
 
 	//测试BFS最小跳数路径
-	vector<int> route;
-	route = g1.routeBFS(3, 1);
-	cout << "最小跳数路径：" << endl;
-	for (int i = 0; i < route.size(); i++)
-	{
-		cout << route[i] << "\t";
-	}
-	cout << endl;
+	auto route = g1.routeBFS(0, 3);
+	cout << route << endl;
 
 
 	return 0;

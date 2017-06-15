@@ -99,7 +99,7 @@ public:
 class Graph :public AdjGraph
 {
 protected:
-
+	
 public:
 	Graph()
 	{
@@ -118,30 +118,38 @@ public:
 
 	}
 
-	vector<int> routeBFS(int s, int d)
+	class Route:public vector<int>
 	{
+	public:
+		friend ostream & operator<<(ostream &os, const Route &r)
+		{
+			int i = 0;
+			for (i = 0; i < r.size() - 1; i++)
+			{
+				os << r[i] << "->";
+			}
+			os << r[i];
+			return os;
+		}
+	};
+
+	//基于BFS计算s到d的最小跳数路径
+	Route routeBFS(int s, int d)
+	{
+		if (s >= numV() || d >= numV())
+		{
+			cerr << "超出节点数量范围！" << endl;
+		}
 		vector<bool> searched(numV(), false);
 		queue<int> b;
-		vector<int> route, from(numV());
+		Route route;
+		vector<int>from(numV());
 		searched[s] = true;
 		b.push(s);
 		while (!b.empty())
 		{
 			int v = b.front();
 			b.pop();
-
-			//if (v != d)
-			//{
-			//	route.push_back(v);
-			//}
-
-			//cout << v << "\t";
-			//route.push_back(v);
-			//if (v == d)
-			//{
-			//	return route;
-			//}
-
 			
 			for (int i = 0; i < numV(); i++)
 			{
