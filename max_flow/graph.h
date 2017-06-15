@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
@@ -95,5 +96,75 @@ public:
 	}
 };
 
+class Graph :public AdjGraph
+{
+protected:
 
+public:
+	Graph()
+	{
+
+	}
+
+	Graph(const Graph& graph):
+		AdjGraph(graph)
+	{
+
+	}
+
+	Graph(const AdjGraph& graph) :
+		AdjGraph(graph)
+	{
+
+	}
+
+	vector<int> routeBFS(int s, int d)
+	{
+		vector<bool> searched(numV(), false);
+		queue<int> b;
+		vector<int> route, from(numV());
+		searched[s] = true;
+		b.push(s);
+		while (!b.empty())
+		{
+			int v = b.front();
+			b.pop();
+
+			//if (v != d)
+			//{
+			//	route.push_back(v);
+			//}
+
+			//cout << v << "\t";
+			//route.push_back(v);
+			//if (v == d)
+			//{
+			//	return route;
+			//}
+
+			
+			for (int i = 0; i < numV(); i++)
+			{
+				if (i != v && adjMatrix[v][i] > 0 && searched[i] == false)
+				{
+					searched[i] = true;
+					from[i] = v;
+					if (i == d)
+					{
+						while (i != s)
+						{
+							route.push_back(i);
+							i = from[i];
+						}
+						route.push_back(i);
+						reverse(route.begin(), route.end());
+						return route;
+					}
+					b.push(i);
+				}
+			}
+
+		}
+	}
+};
 

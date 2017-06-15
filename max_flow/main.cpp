@@ -2,18 +2,29 @@
 #include <iostream>
 
 using namespace std;
-AdjGraph g1(5),g2(g1);
 
 int main()
 {
-	g1.addV(1, 2, 5);
-	g1.addUV(2, 4, 8);
-	AdjGraph g3(g1);
+	Graph g1(5);
+	g1.addUV(0, 1, 6);
+	g1.addUV(1, 2, 22);
+	g1.addUV(2, 3, 16);
+	g1.addUV(3, 4, 78);
+	g1.addUV(1, 4, 10);
+	g1.addUV(0, 4, 35);
 
 	cout << "g1:" << endl << g1 << endl;
-	cout << "g2:" << endl << g2 << endl;
-	cout << "g3:" << endl << g3 << endl;
-	cout << "g1在[1,2]的权重是：" << endl << g1[1][2] << endl;
+
+	//测试BFS最小跳数路径
+	vector<int> route;
+	route = g1.routeBFS(3, 1);
+	cout << "最小跳数路径：" << endl;
+	for (int i = 0; i < route.size(); i++)
+	{
+		cout << route[i] << "\t";
+	}
+	cout << endl;
+
 
 	return 0;
 }
