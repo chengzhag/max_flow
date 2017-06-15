@@ -5,6 +5,8 @@
 
 using namespace std;
 
+
+
 class AdjGraph
 {
 protected:
@@ -21,10 +23,10 @@ public:
 		clear();
 	}
 
-	AdjGraph(const AdjGraph& adjGraph):
+	AdjGraph(const AdjGraph& adjGraph) :
 		adjMatrix(adjGraph.adjMatrix)
 	{
-		
+
 	}
 
 	//设置节点数量
@@ -103,14 +105,15 @@ public:
 class Graph :public AdjGraph
 {
 protected:
-	
+
 public:
+
 	Graph()
 	{
 
 	}
 
-	Graph(const Graph& graph):
+	Graph(const Graph& graph) :
 		AdjGraph(graph)
 	{
 
@@ -122,7 +125,8 @@ public:
 
 	}
 
-	class Route:public vector<int>
+	//基于vector的路径类，重载了<<操作符便于输出
+	class Route :public vector<int>
 	{
 	public:
 		friend ostream & operator<<(ostream &os, const Route &r)
@@ -157,7 +161,7 @@ public:
 		{
 			int v = b.front();
 			b.pop();
-			
+
 			for (int i = 0; i < numV(); i++)
 			{
 				if (i != v && adjMatrix[v][i] > 0 && searched[i] == false)
@@ -183,13 +187,133 @@ public:
 		return route;
 	}
 
-	//基于增广路径和Edmonds Karp的最大流算法
+	/*
+	基于增广路径和Edmonds Karp的最大流算法
+	章程2015010912010
+	*/
+public:
 	Graph maxFlowEK(int s, int d)
 	{
-		Graph maxFlow;
+		Graph maxFlow(numV()), rNet(*this);
+
+#ifdef DEBUG
+		cout << "初始化的剩余网络：" << endl << rNet << endl;
+		int rNum = 1;
+#endif // DEBUG
+
+		Route rRoute = rNet.routeBFS(s, d);
+		while (rRoute.size() > 0)
+		{
+			int flow = rNet.getRouteFlow(rRoute);
+
+			//向最大流图记录输送的流
+			addFlow(maxFlow, rRoute, flow);
+
+			//更新剩余网络
+			refreshRNet(rNet, rRoute, flow);
+
+#ifdef DEBUG
+			cout << "############第" << rNum++ << "次增广############" << endl;
+			cout << "增广容量：" << flow << endl;
+			cout << "最大流网络：" << endl << maxFlow << endl;
+			cout << "剩余网络：" << endl << rNet << endl;
+#endif // DEBUG
+
+			rRoute = rNet.routeBFS(s, d);
+		}
+
+
 
 		return maxFlow;
 	}
+
+protected:
+
+	//获取某路径的流大小
+	int getRouteFlow(Route r)
+	{
+		int flow = 0;
+		if (r.size() > 1)
+		{
+			flow = adjMatrix[r[0]][r[1]];
+			for (int i = 1; i < r.size() - 1; i++)
+			{
+				if (flow > adjMatrix[r[i]][r[i + 1]])
+				{
+					flow = adjMatrix[r[i]][r[i + 1]];
+				}
+			}
+		}
+		return flow;
+	}
+
+	//更新剩余网络
+	//对剩余网络rNet
+	//进行沿route路径的更新
+	//增广容量为flow
+	void refreshRNet(Graph& rNet, Route route, int flow)
+	{
+		if (route.size() > 1)
+		{
+			for (int i = 0; i < route.size() - 1; i++)
+			{
+				int s = route[i], d = route[i + 1];
+				rNet[s][d] -= flow;
+				rNet[d][s] += flow;
+			}
+		}
+	}
+
+	//向最大流图沿route输送flow单位的流
+	void addFlow(Graph& flowGraph, Route route, int flow)
+	{
+		if (route.size() > 1)
+		{
+			for (int i = 0; i < route.size() - 1; i++)
+			{
+				int s = route[i], d = route[i + 1];
+				int flowWeight = flowGraph[s][d] - flowGraph[d][s] + flow;
+				if (flowWeight > 0)
+				{
+					flowGraph[s][d] = flowWeight;
+					flowGraph[d][s] = 0;
+				}
+				else
+				{
+					flowGraph[s][d] = 0;
+					flowGraph[d][s] = -flowWeight;
+				}
+			}
+		}
+	}
+
+	/*
+	基于Preflow Push/Push Relabel的最大流算法
+	章程2015010912010
+	END
+	*/
+public:
+
+	Graph maxFlowPR(int s, int d)
+	{
+		Graph maxFlow(numV());
+		vector<int> h(numV(), 0);
+
+
+
+
+		return maxFlow;
+	}
+
+protected:
+
+	/*
+	基于Preflow Push/Push Relabel的最大流算法
+	章程2015010912010
+	END
+	*/
+
+
 };
 
 

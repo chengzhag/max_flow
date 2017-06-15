@@ -1,3 +1,4 @@
+//#define DEBUG
 #include "graph.h"
 #include <iostream>
 
@@ -5,21 +6,25 @@ using namespace std;
 
 int main()
 {
-	Graph g1(5);
-	g1.addUV(0, 1, 6);
-	g1.addUV(1, 2, 22);
-	//g1.addUV(2, 3, 16);
-	//g1.addUV(3, 4, 78);
-	g1.addUV(1, 4, 10);
-	g1.addUV(0, 4, 35);
+	Graph g1(4);
+	g1.addV(0, 1, 20);
+	g1.addV(1, 3, 10);
+	g1.addV(0, 2, 10);
+	g1.addV(1, 2, 30);
+	g1.addV(2, 3, 20);
 
 	cout << "g1:" << endl << g1 << endl;
 
 	//测试BFS最小跳数路径
+	cout << "##########测试BFS最小跳数路径##########" << endl;
 	auto route = g1.routeBFS(0, 3);
 	cout << "最小跳数路径跳数：" << route.size() - 1 << endl;
 	cout << route << endl;
 
+	//测试EK最大流
+	cout << "##########测试EK最大流##########" << endl;
+	Graph maxFlow = g1.maxFlowEK(0, 3);
+	cout << "最大流网络：" << endl << maxFlow << endl;
 
 	return 0;
 }
