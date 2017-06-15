@@ -26,5 +26,10 @@ int main()
 	Graph maxFlow = g1.maxFlowEK(0, 3);
 	cout << "最大流网络：" << endl << maxFlow << endl;
 
+	//测试PR最大流
+	cout << "##########测试PR最大流##########" << endl;
+	maxFlow = g1.maxFlowPR(0, 3);
+	cout << "最大流网络：" << endl << maxFlow << endl;
+
 	return 0;
 }

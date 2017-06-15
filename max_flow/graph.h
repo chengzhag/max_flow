@@ -204,17 +204,17 @@ public:
 		Route rRoute = rNet.routeBFS(s, d);
 		while (rRoute.size() > 0)
 		{
-			int flow = rNet.getRouteFlow(rRoute);
+			int cap = rNet._getRouteCap(rRoute);
 
 			//向最大流图记录输送的流
-			addFlow(maxFlow, rRoute, flow);
+			_addFlow(maxFlow, rRoute, cap);
 
 			//更新剩余网络
-			refreshRNet(rNet, rRoute, flow);
+			_refreshRNet(rNet, rRoute, cap);
 
 #ifdef DEBUG
 			cout << "############第" << rNum++ << "次增广############" << endl;
-			cout << "增广容量：" << flow << endl;
+			cout << "增广容量：" << cap << endl;
 			cout << "最大流网络：" << endl << maxFlow << endl;
 			cout << "剩余网络：" << endl << rNet << endl;
 #endif // DEBUG
@@ -229,8 +229,8 @@ public:
 
 protected:
 
-	//获取某路径的流大小
-	int getRouteFlow(Route r)
+	//获取某路径的容量大小
+	int _getRouteCap(Route r)
 	{
 		int flow = 0;
 		if (r.size() > 1)
@@ -251,7 +251,7 @@ protected:
 	//对剩余网络rNet
 	//进行沿route路径的更新
 	//增广容量为flow
-	void refreshRNet(Graph& rNet, Route route, int flow)
+	void _refreshRNet(Graph& rNet, Route route, int flow)
 	{
 		if (route.size() > 1)
 		{
@@ -265,7 +265,7 @@ protected:
 	}
 
 	//向最大流图沿route输送flow单位的流
-	void addFlow(Graph& flowGraph, Route route, int flow)
+	void _addFlow(Graph& flowGraph, Route route, int flow)
 	{
 		if (route.size() > 1)
 		{
@@ -287,25 +287,75 @@ protected:
 		}
 	}
 
+
+
 	/*
 	基于Preflow Push/Push Relabel的最大流算法
 	章程2015010912010
-	END
 	*/
 public:
-
 	Graph maxFlowPR(int s, int d)
 	{
-		Graph maxFlow(numV());
+		//初始化
+		Graph preFlow(numV());
 		vector<int> h(numV(), 0);
+		_initHeight(s, d, h);
+		h[s] = numV();
+
+#ifdef DEBUG
+		for (int i = 0; i < h.size() - 1; i++)
+		{
+			cout << h[i] << "\t";
+		}
+		cout << h[numV() - 1] << endl;
+#endif // DEBUG
+
+		//TODO: init中进行饱和推送
+
+		//TODO: 饱和推送、非饱和推送函数，完成推送函数，完成Push-Relabel函数
 
 
-
-
-		return maxFlow;
+		return preFlow;
 	}
 
 protected:
+
+	//反向BFS初始化跳数，s、d为反向前s、d
+	void _initHeight(int s, int d, vector<int>& h)
+	{
+		if (s >= numV() || d >= numV())
+		{
+			cerr << "超出节点数量范围！" << endl;
+		}
+
+		//反向s和d
+		swap(s, d);
+
+		//以反向的邻接矩阵做BFS
+		int hop = 0;
+		vector<bool> searched(numV(), false);
+		queue<int> b;
+		h[s] = 0;
+		searched[s] = true;
+		b.push(s);
+		while (!b.empty())
+		{
+			hop++;
+			int v = b.front();
+			b.pop();
+
+			for (int i = 0; i < numV(); i++)
+			{
+				//此处邻接矩阵的index反向
+				if (i != v && adjMatrix[i][v] > 0 && searched[i] == false)
+				{
+					h[i] = hop;
+					searched[i] = true;
+					b.push(i);
+				}
+			}
+		}
+	}
 
 	/*
 	基于Preflow Push/Push Relabel的最大流算法
