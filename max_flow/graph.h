@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <math.h>
 
 using namespace std;
 
@@ -230,7 +231,7 @@ public:
 protected:
 
 	//获取某路径的容量大小
-	int _getRouteCap(Route r)
+	int _getRouteCap(const Route& r)
 	{
 		int flow = 0;
 		if (r.size() > 1)
@@ -251,7 +252,7 @@ protected:
 	//对剩余网络rNet
 	//进行沿route路径的更新
 	//增广容量为flow
-	void _refreshRNet(Graph& rNet, Route route, int flow)
+	void _refreshRNet(Graph& rNet, const Route& route, int flow)
 	{
 		if (route.size() > 1)
 		{
@@ -265,25 +266,31 @@ protected:
 	}
 
 	//向最大流图沿route输送flow单位的流
-	void _addFlow(Graph& flowGraph, Route route, int flow)
+	void _addFlow(Graph& flowGraph, const Route& route, int flow)
 	{
 		if (route.size() > 1)
 		{
 			for (int i = 0; i < route.size() - 1; i++)
 			{
 				int s = route[i], d = route[i + 1];
-				int flowWeight = flowGraph[s][d] - flowGraph[d][s] + flow;
-				if (flowWeight > 0)
-				{
-					flowGraph[s][d] = flowWeight;
-					flowGraph[d][s] = 0;
-				}
-				else
-				{
-					flowGraph[s][d] = 0;
-					flowGraph[d][s] = -flowWeight;
-				}
+				_addFlow(flowGraph, s, d, flow);
 			}
+		}
+	}
+
+	//向最大流图边e(s,d)输送flow单位的流
+	void _addFlow(Graph& flowGraph, int s, int d, int flow)
+	{
+		int flowWeight = flowGraph[s][d] - flowGraph[d][s] + flow;
+		if (flowWeight > 0)
+		{
+			flowGraph[s][d] = flowWeight;
+			flowGraph[d][s] = 0;
+		}
+		else
+		{
+			flowGraph[s][d] = 0;
+			flowGraph[d][s] = -flowWeight;
 		}
 	}
 
@@ -297,12 +304,20 @@ public:
 	Graph maxFlowPR(int s, int d)
 	{
 		//初始化
-		Graph preFlow(numV());
-		vector<int> h(numV(), 0);
-		_initHeight(s, d, h);
+		Graph preFlow(numV()), rNet(*this);
+		vector<int> h(numV(), 0), excess(numV(), 0);
+		_initHeight(d, h);
 		h[s] = numV();
 
+		//判断是否有路径
+		Route sd = routeBFS(s, d);
+		if (sd.size() == 0)
+		{
+			return preFlow;
+		}
+
 #ifdef DEBUG
+		cout << "初始化后的高度函数：" << endl;
 		for (int i = 0; i < h.size() - 1; i++)
 		{
 			cout << h[i] << "\t";
@@ -310,10 +325,66 @@ public:
 		cout << h[numV() - 1] << endl;
 #endif // DEBUG
 
-		//TODO: init中进行饱和推送
+		//进行饱和推送
+		for (int i = 0; i < numV(); i++)
+		{
+			if (i != s && rNet[s][i] > 0)
+			{
+				_pushFull(preFlow, rNet,excess, s, i);
+			}
+		}
 
-		//TODO: 饱和推送、非饱和推送函数，完成推送函数，完成Push-Relabel函数
+#ifdef DEBUG
+		cout << "初始化后的预流网络：" << endl << preFlow << endl;
+		cout << "初始化后的剩余网络：" << endl << rNet << endl;
+		cout << "初始化后的节点盈余：" << endl;
+		for (int i = 0; i < excess.size() - 1; i++)
+		{
+			cout << excess[i] << "\t";
+		}
+		cout << excess[numV() - 1] << endl;
 
+		int cNum=1;
+#endif // DEBUG
+
+		//Push-Relabel
+		while (hasExcess(excess, s, d))
+		{
+			//获取最大高度盈余点v
+			int maxH = -1, v = 0;//最大高度可能为0
+			for (int i = 0; i < numV(); i++)
+			{
+				if (i != s && i != d && excess[i] != 0 && maxH < h[i])
+				{
+					maxH = h[i];
+					v = i;
+				}
+			}
+
+			bool hasEvw = false;
+			for (int i = 0; i < numV(); i++)
+			{
+				if (i != v && rNet[v][i] > 0 && h[v] == h[i] + 1)
+				{
+					_push(preFlow, rNet, excess, v, i);
+					hasEvw;
+					break;
+				}
+			}
+			if (!hasEvw)
+			{
+				h[v]++;//Relabel
+			}
+			
+
+#ifdef DEBUG
+			cout << "############第" << cNum++ << "次循环############" << endl;
+			cout << "最大高度盈余点：" << v << endl;
+			cout << "最大高度：" << maxH << endl;
+			cout << "预流网络：" << endl << preFlow << endl;
+			cout << "剩余网络：" << endl << rNet << endl;
+#endif // DEBUG
+		}
 
 		return preFlow;
 	}
@@ -321,15 +392,15 @@ public:
 protected:
 
 	//反向BFS初始化跳数，s、d为反向前s、d
-	void _initHeight(int s, int d, vector<int>& h)
+	void _initHeight(int d, vector<int>& h)
 	{
-		if (s >= numV() || d >= numV())
+		if (d >= numV())
 		{
 			cerr << "超出节点数量范围！" << endl;
 		}
 
 		//反向s和d
-		swap(s, d);
+		int s = d;
 
 		//以反向的邻接矩阵做BFS
 		int hop = 0;
@@ -355,6 +426,77 @@ protected:
 				}
 			}
 		}
+	}
+
+	//饱和推送e(s,d)
+	void _pushFull(Graph& preFlow, Graph& rNet, vector<int>& excess, int s, int d)
+	{
+		_addFlow(preFlow, s, d, rNet[s][d]);
+
+		rNet[d][s] = rNet[s][d];
+		rNet[s][d] = 0;
+
+		//更新盈余
+		excess[d] = _getExccess(preFlow, d);
+	}
+
+	//计算盈余
+	int _getExccess(Graph& preFlow, int v)
+	{
+		int excess = 0;
+		for (int i = 0; i < numV(); i++)
+		{
+			if (i != v && preFlow[i][v] > 0)
+			{
+				excess += preFlow[i][v];
+			}
+
+			if (i != v && preFlow[v][i] > 0)
+			{
+				excess -= preFlow[v][i];
+			}
+		}
+		return excess;
+	}
+
+	//推送e(s,d)
+	void _push(Graph& preFlow, Graph& rNet, vector<int>& excess, int s, int d)
+	{
+		//计算顶点盈余
+		int es = _getExccess(preFlow, s);
+
+		//饱和推送或非饱和推送
+		int flow = 0;
+		if (es>=rNet[s][d])
+		{
+			flow = rNet[s][d];//饱和推送
+		}
+		else
+		{
+			flow = es;//非饱和推送
+		}
+		_addFlow(preFlow, s, d, flow);
+
+		//更新剩余网络
+		rNet[s][d] -= flow;
+		rNet[d][s] += flow;
+
+		//更新盈余
+		excess[s] = _getExccess(preFlow, s);
+		excess[d] = _getExccess(preFlow, d);
+	}
+
+	//vector是否含有非零值
+	bool hasExcess(const vector<int>& v, int s, int d)
+	{
+		for (int i = 0; i < v.size(); i++)
+		{
+			if (i != s && i != d && v[i] != 0)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/*
