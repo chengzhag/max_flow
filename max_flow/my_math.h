@@ -6,22 +6,12 @@ class TicToc
 {
 	clock_t ticTime;
 public:
-	TicToc():
-		ticTime(0)
-	{
-
-	}
+	TicToc();
 	//开始计时
-	void tic()
-	{
-		ticTime = clock();
-	}
+	void tic();
 
 	//返回从上次开始计时到现在的时间差
-	clock_t toc()
-	{
-		return clock() - ticTime;
-	}
+	clock_t toc();
 
 };
 

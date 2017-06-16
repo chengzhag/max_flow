@@ -2,6 +2,7 @@
 #include "my_math.h"
 #include <iostream>
 #include <time.h>
+#include <fstream>
 
 using namespace std;
 
@@ -43,21 +44,37 @@ int main()
 	cout << "最大流网络：" << endl << maxFlow2 << endl;
 
 	//对EK和PR进行时间测试
+	//开启文件进行记录
+	ofstream outFile;
+	outFile.open("测试数据.txt");
+	if (!outFile)
+	{
+		cerr << "打开输入'测试数据.txt'文件出错！" << endl;
+		return 1;
+	}
+
 	int numVS = 5, numVE = 20;//节点数量范围
-	float numEratioS = 0.2, numEratioE = 0.5;//边数与节点数量平方的比例范围
-	int numG = 20, avT = 10;
+	float numEratioS = 1.2, numEratioE = 5;//边数与节点数量的比例范围
+	int numG = 10, avT = 10;
 
 	cout << "##########对EK和PR进行时间测试##########" << endl;
 	cout << "节点数量从" << numVS << "到" << numVE << endl;
-	cout << "边数与节点数量平方的比例从" << numEratioS << "到" << numEratioE << endl;
+	cout << "边数与节点数量的比例从" << numEratioS << "到" << numEratioE << endl;
 	cout << "每种参数生成" << numG << "个图进行测试" << endl;
 	cout << "每个图进行" << avT << "次测试" << endl;
+
+	outFile << "##########对EK和PR进行时间测试##########" << endl;
+	outFile << "节点数量从" << numVS << "到" << numVE << endl;
+	outFile << "边数与节点数量的比例从" << numEratioS << "到" << numEratioE << endl;
+	outFile << "每种参数生成" << numG << "个图进行测试" << endl;
+	outFile << "每个图进行" << avT << "次测试" << endl;
+	outFile << endl << "节点数\t边数\tEK用时\tPR用时" << endl;
 
 
 	for (int numV = numVS; numV < numVE; numV++)
 	{
-		int numES = numV*numV* numEratioS + 1;//边数的范围
-		int numEE = numV*numV* numEratioE + 1;
+		int numES = numV* numEratioS + 1;//边数的范围
+		int numEE = numV* numEratioE + 1;
 		for (int numE = numES; numE < numEE; numE++)
 		{
 			//对每种情况随机生成numG个图用作测试
@@ -94,9 +111,14 @@ int main()
 
 			ekT /= numG;
 			prT /= numG;
-			cout << numV << "个节点" << numE
-				<< "条边的图下EK平均用时" << ekT
-				<< "ms，PR平均用时" << prT << "ms" << endl;
+			cout << numV << "个节点"
+				<< numE << "条边的图下EK平均用时"
+				<< ekT << "ms，PR平均用时"
+				<< prT << "ms" << endl;
+			outFile << numV << "\t" 
+				<< numE << "\t"
+				<< ekT << "\t" 
+				<< prT << endl;
 		}
 	}
 
