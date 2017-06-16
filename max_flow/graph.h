@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <math.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -124,6 +124,20 @@ public:
 		AdjGraph(graph)
 	{
 
+	}
+
+	Graph(int numV, int numRandE, int weightRandMax):
+		AdjGraph(numV)
+	{
+		for (int i = 0; i < numRandE; i++)
+		{
+			int s = rand() % numV, d = rand() % numV;
+			while (adjMatrix[s][d] != 0)
+			{
+				s = rand() % numV, d = rand() % numV;
+			}
+			adjMatrix[s][d] = rand() % weightRandMax + 1;
+		}
 	}
 
 	//基于vector的路径类，重载了<<操作符便于输出
@@ -504,6 +518,7 @@ protected:
 	章程2015010912010
 	END
 	*/
+
 
 
 };
